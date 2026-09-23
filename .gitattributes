@@ -1,0 +1,11 @@
+# Единые переводы строк LF в репозитории независимо от ОС
+* text=auto eol=lf
+
+# Бинарные файлы не трогать
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
