@@ -1,0 +1,22 @@
+---
+import { cn } from '@/lib/utils';
+
+interface Props {
+  variant?: 'default' | 'outline' | 'live' | 'mvp' | 'concept' | 'archived';
+  class?: string;
+}
+const { variant = 'outline', class: className } = Astro.props;
+
+const variants = {
+  default: 'bg-accent text-accent-foreground border-transparent',
+  outline: 'text-muted-foreground',
+  live: 'border-transparent bg-success/15 text-success',
+  mvp: 'border-transparent bg-accent text-accent-foreground',
+  concept: 'border-transparent bg-warning/15 text-warning',
+  archived: 'border-transparent bg-muted text-muted-foreground',
+};
+---
+
+<span class={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium', variants[variant], className)}>
+  <slot />
+</span>

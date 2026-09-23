@@ -1,0 +1,14 @@
+---
+// Сгенерированная обёртка маршрута: вся вёрстка в src/views/. Меняется только код языка.
+import View from '@/views/PostView.astro';
+import { getPosts, type PostEntry } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts('en');
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: PostEntry };
+---
+
+<View post={post} lang="en" />

@@ -1,0 +1,48 @@
+---
+import Badge from './ui/Badge.astro';
+import { asset, formatDate, t, url, type Lang } from '@/lib/i18n';
+import type { AppEntry } from '@/lib/content';
+
+interface Props {
+  app: AppEntry;
+  lang: Lang;
+}
+const { app, lang } = Astro.props;
+const s = t(lang);
+const d = app.data;
+---
+
+<a
+  href={url(`apps/${app.slug}/`, lang)}
+  class="group flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground transition-colors hover:border-primary/50"
+>
+  <div class="aspect-video overflow-hidden bg-muted">
+    {
+      d.cover && (
+        <img
+          src={asset(d.cover)}
+          alt=""
+          loading="lazy"
+          class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        />
+      )
+    }
+  </div>
+  <div class="flex flex-1 flex-col gap-2 p-4">
+    <div class="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+      <Badge variant={d.status}>{s.apps.status[d.status]}</Badge>
+      <time datetime={d.date.toISOString()}>{formatDate(d.date, lang)}</time>
+    </div>
+    <h3 class="text-lg font-semibold">{d.title}</h3>
+    <p class="text-sm text-muted-foreground">{d.tagline}</p>
+    {
+      d.tags.length > 0 && (
+        <div class="mt-auto flex flex-wrap gap-1.5 pt-2">
+          {d.tags.map((tag) => (
+            <Badge>{tag}</Badge>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</a>

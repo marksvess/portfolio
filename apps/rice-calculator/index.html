@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>RICE Calculator</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #1a1a1a;
+        --muted: #6b6b6b;
+        --border: #e5e5e5;
+        --card: #fafafa;
+        --primary: #3b5bdb;
+        --primary-fg: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #161616;
+          --fg: #f2f2f2;
+          --muted: #a8a8a8;
+          --border: #2e2e2e;
+          --card: #1f1f1f;
+          --primary: #8ea2f5;
+          --primary-fg: #161616;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+      header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+      h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.02em; }
+      p.hint { color: var(--muted); margin: 8px 0 24px; }
+      button {
+        font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);
+        background: var(--bg); color: var(--fg); padding: 8px 14px;
+      }
+      button.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; font-weight: 600; }
+      form { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+      label { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+      label.wide { grid-column: 1 / -1; }
+      input, select {
+        font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--border);
+        border-radius: 8px; padding: 8px 10px; width: 100%;
+      }
+      .table { margin-top: 24px; overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; min-width: 560px; }
+      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+      th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+      td.score { font-weight: 700; color: var(--primary); }
+      td.del button { padding: 2px 8px; }
+      .empty { color: var(--muted); text-align: center; padding: 32px 0; }
+      .back { color: var(--muted); font-size: 0.9rem; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <a class="back" href="../" data-i18n="back">← Back to description</a>
+      <header style="margin-top: 16px">
+        <h1 data-i18n="title">RICE Prioritization Calculator</h1>
+        <button id="lang" type="button">RU</button>
+      </header>
+      <p class="hint" data-i18n="hint">Score = Reach × Impact × Confidence ÷ Effort. Ideas are saved in this browser only.</p>
+
+      <form id="form">
+        <label class="wide"><span data-i18n="idea">Idea</span><input name="name" required maxlength="120" /></label>
+        <label><span data-i18n="reach">Reach (users / quarter)</span><input name="reach" type="number" min="0" step="1" value="100" required /></label>
+        <label><span data-i18n="impact">Impact</span>
+          <select name="impact">
+            <option value="3" data-i18n="i3">3 — massive</option>
+            <option value="2" data-i18n="i2">2 — high</option>
+            <option value="1" selected data-i18n="i1">1 — medium</option>
+            <option value="0.5" data-i18n="i05">0.5 — low</option>
+            <option value="0.25" data-i18n="i025">0.25 — minimal</option>
+          </select>
+        </label>
+        <label><span data-i18n="confidence">Confidence</span>
+          <select name="confidence">
+            <option value="1">100%</option>
+            <option value="0.8" selected>80%</option>
+            <option value="0.5">50%</option>
+          </select>
+        </label>
+        <label><span data-i18n="effort">Effort (person-months)</span><input name="effort" type="number" min="0.1" step="0.1" value="1" required /></label>
+        <div style="grid-column: 1 / -1"><button class="primary" type="submit" data-i18n="add">Add idea</button></div>
+      </form>
+
+      <div class="table">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th data-i18n="idea">Idea</th><th>R</th><th>I</th><th>C</th><th>E</th><th data-i18n="score">Score</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <p id="empty" class="empty" data-i18n="empty">Add your first idea to see the ranking.</p>
+      </div>
+    </div>
+
+    <script>
+      const T = {
+        en: {
+          back: '← Back to description', title: 'RICE Prioritization Calculator',
+          hint: 'Score = Reach × Impact × Confidence ÷ Effort. Ideas are saved in this browser only.',
+          idea: 'Idea', reach: 'Reach (users / quarter)', impact: 'Impact', confidence: 'Confidence',
+          effort: 'Effort (person-months)', add: 'Add idea', score: 'Score', empty: 'Add your first idea to see the ranking.',
+          i3: '3 — massive', i2: '2 — high', i1: '1 — medium', i05: '0.5 — low', i025: '0.25 — minimal', del: 'Delete',
+        },
+        ru: {
+          back: '← К описанию', title: 'Калькулятор приоритизации RICE',
+          hint: 'Оценка = Охват × Влияние × Уверенность ÷ Трудозатраты. Идеи сохраняются только в этом браузере.',
+          idea: 'Идея', reach: 'Охват (пользователей / квартал)', impact: 'Влияние', confidence: 'Уверенность',
+          effort: 'Трудозатраты (человеко-месяцы)', add: 'Добавить идею', score: 'Оценка', empty: 'Добавьте первую идею, чтобы увидеть рейтинг.',
+          i3: '3 — огромное', i2: '2 — высокое', i1: '1 — среднее', i05: '0.5 — низкое', i025: '0.25 — минимальное', del: 'Удалить',
+        },
+      };
+      const store = {
+        get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+        set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+      };
+      const params = new URLSearchParams(location.search);
+      let lang = params.get('lang') || store.get('rice-lang', null) || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+      let ideas = store.get('rice-ideas', []);
+
+      const $ = (s) => document.querySelector(s);
+      const score = (i) => (i.reach * i.impact * i.confidence) / i.effort;
+      const fmt = (n) => (Math.round(n * 10) / 10).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US');
+
+      function applyLang() {
+        document.documentElement.lang = lang;
+        document.title = T[lang].title;
+        document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = T[lang][el.dataset.i18n]));
+        $('#lang').textContent = lang === 'en' ? 'RU' : 'EN';
+        render();
+      }
+
+      function render() {
+        const rows = [...ideas].sort((a, b) => score(b) - score(a));
+        $('#rows').innerHTML = '';
+        rows.forEach((i, n) => {
+          const tr = document.createElement('tr');
+          const cells = [n + 1, i.name, fmt(i.reach), i.impact, Math.round(i.confidence * 100) + '%', i.effort, fmt(score(i))];
+          cells.forEach((c, idx) => {
+            const td = document.createElement('td');
+            td.textContent = c;
+            if (idx === 6) td.className = 'score';
+            tr.appendChild(td);
+          });
+          const del = document.createElement('td');
+          del.className = 'del';
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = '×';
+          b.title = T[lang].del;
+          b.onclick = () => { ideas = ideas.filter((x) => x.id !== i.id); store.set('rice-ideas', ideas); render(); };
+          del.appendChild(b);
+          tr.appendChild(del);
+          $('#rows').appendChild(tr);
+        });
+        $('#empty').hidden = rows.length > 0;
+      }
+
+      $('#form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        ideas.push({
+          id: Date.now(),
+          name: String(f.get('name')).trim(),
+          reach: Number(f.get('reach')),
+          impact: Number(f.get('impact')),
+          confidence: Number(f.get('confidence')),
+          effort: Math.max(0.1, Number(f.get('effort'))),
+        });
+        store.set('rice-ideas', ideas);
+        e.target.reset();
+        render();
+      });
+
+      $('#lang').addEventListener('click', () => {
+        lang = lang === 'en' ? 'ru' : 'en';
+        store.set('rice-lang', lang);
+        applyLang();
+      });
+
+      applyLang();
+    </script>
+  </body>
+</html>

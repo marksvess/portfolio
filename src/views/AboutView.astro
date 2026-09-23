@@ -1,0 +1,76 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Avatar from '@/components/Avatar.astro';
+import Button from '@/components/ui/Button.astro';
+import { t, url, type Lang } from '@/lib/i18n';
+import { getProfile, paragraphs } from '@/lib/content';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const s = t(lang);
+const p = await getProfile(lang);
+---
+
+<BaseLayout lang={lang} title={s.about.title}>
+  <div class="grid gap-10 md:grid-cols-[14rem_1fr]">
+    <div>
+      <Avatar name={p.name} photo={p.photo} class="h-40 w-40 md:h-56 md:w-56" />
+      <Button href={url('cv/', lang)} variant="outline" class="mt-6">{s.about.cv}</Button>
+    </div>
+    <div>
+      <h1 class="text-4xl font-bold">{s.about.title}</h1>
+      <div class="mt-4 space-y-4 text-lg leading-relaxed">
+        {paragraphs(p.bio).map((para) => <p>{para}</p>)}
+      </div>
+
+      {
+        p.experience.length > 0 && (
+          <section class="mt-14">
+            <h2 class="text-2xl font-bold">{s.about.experience}</h2>
+            <ol class="mt-6 space-y-8 border-l pl-6">
+              {p.experience.map((job) => (
+                <li class="relative">
+                  <span class="absolute top-1.5 -left-[1.9rem] h-3 w-3 rounded-full border-2 border-primary bg-background" />
+                  <p class="text-sm text-muted-foreground">
+                    {job.period}
+                    {job.location && ` · ${job.location}`}
+                  </p>
+                  <h3 class="mt-1 font-semibold">
+                    {job.role}, {job.company}
+                  </h3>
+                  {job.achievements.length > 0 && (
+                    <ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                      {job.achievements.map((a) => (
+                        <li>{a}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+
+      {
+        p.education.length > 0 && (
+          <section class="mt-14">
+            <h2 class="text-2xl font-bold">{s.about.education}</h2>
+            <ul class="mt-4 space-y-3">
+              {p.education.map((e) => (
+                <li>
+                  <p class="font-semibold">{e.institution}</p>
+                  <p class="text-sm text-muted-foreground">
+                    {e.degree} · {e.period}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>

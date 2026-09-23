@@ -1,0 +1,25 @@
+name: Maxim Glushchenko
+title: Product Manager
+location: ''
+photo: ''
+summary: >-
+  Product manager who takes products from discovery to launch and builds working MVPs to test ideas fast.
+bio: |-
+  I am a product manager. I turn customer problems into products: research, prioritisation, roadmap, launch and iteration.
+
+  On this site you can try the MVPs I have built and read how each of them came to life.
+highlights: []
+skills:
+  - title: Product discovery
+    description: Customer interviews, problem framing, hypothesis testing.
+  - title: Prioritisation and roadmap
+    description: Frameworks, trade-offs and a roadmap the team believes in.
+  - title: MVP and experiments
+    description: Fast prototypes to validate value before a full build.
+experience: []
+education: []
+contacts:
+  email: ''
+  linkedin: ''
+  telegram: ''
+  github: https://github.com/marksvess

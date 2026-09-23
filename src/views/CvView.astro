@@ -1,0 +1,97 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/ui/Button.astro';
+import { t, type Lang } from '@/lib/i18n';
+import { getProfile, paragraphs } from '@/lib/content';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const s = t(lang);
+const p = await getProfile(lang);
+const contacts = [p.contacts.email, p.contacts.linkedin, p.contacts.telegram, p.contacts.github].filter(Boolean);
+---
+
+<BaseLayout lang={lang} title={s.cv.title}>
+  <div class="no-print mb-8 flex flex-wrap items-center gap-3">
+    <Button id="print-btn">{s.cv.print}</Button>
+    <span class="text-sm text-muted-foreground">{s.cv.hint}</span>
+  </div>
+
+  <article class="cv mx-auto max-w-3xl">
+    <header class="border-b pb-4">
+      <h1 class="text-3xl font-bold">{p.name}</h1>
+      <p class="mt-1 text-lg">{p.title}{p.location && ` · ${p.location}`}</p>
+      {contacts.length > 0 && <p class="mt-2 text-sm text-muted-foreground">{contacts.join(' · ')}</p>}
+    </header>
+
+    <section class="mt-6">
+      {paragraphs(p.bio).map((para) => <p class="mt-2">{para}</p>)}
+    </section>
+
+    {
+      p.experience.length > 0 && (
+        <section class="mt-6">
+          <h2 class="border-b pb-1 text-lg font-bold uppercase">{s.about.experience}</h2>
+          {p.experience.map((job) => (
+            <div class="mt-4 break-inside-avoid">
+              <div class="flex flex-wrap justify-between gap-2">
+                <h3 class="font-semibold">
+                  {job.role}, {job.company}
+                </h3>
+                <span class="text-sm text-muted-foreground">{job.period}</span>
+              </div>
+              <ul class="mt-1 list-disc pl-5 text-sm">
+                {job.achievements.map((a) => (
+                  <li>{a}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )
+    }
+
+    {
+      p.skills.length > 0 && (
+        <section class="mt-6 break-inside-avoid">
+          <h2 class="border-b pb-1 text-lg font-bold uppercase">{s.about.skills}</h2>
+          <p class="mt-2 text-sm">{p.skills.map((sk) => sk.title).join(' · ')}</p>
+        </section>
+      )
+    }
+
+    {
+      p.education.length > 0 && (
+        <section class="mt-6 break-inside-avoid">
+          <h2 class="border-b pb-1 text-lg font-bold uppercase">{s.about.education}</h2>
+          {p.education.map((e) => (
+            <p class="mt-2 text-sm">
+              <strong>{e.institution}</strong>, {e.degree}, {e.period}
+            </p>
+          ))}
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style is:global>
+  @media print {
+    @page {
+      margin: 16mm;
+    }
+    main {
+      padding: 0 !important;
+      max-width: none !important;
+    }
+    .cv {
+      font-size: 11pt;
+    }
+  }
+</style>
+
+<script>
+  document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+</script>

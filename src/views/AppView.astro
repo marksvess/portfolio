@@ -1,0 +1,104 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Badge from '@/components/ui/Badge.astro';
+import Button from '@/components/ui/Button.astro';
+import { asset, formatDate, t, url, type Lang } from '@/lib/i18n';
+import { getApps, paragraphs, type AppEntry } from '@/lib/content';
+
+interface Props {
+  app: AppEntry;
+  lang: Lang;
+}
+const { app, lang } = Astro.props;
+const s = t(lang);
+const d = app.data;
+const { Content } = await render(app);
+
+// Явный index.html: dev-сервер не отдаёт index.html из папок public/, а GitHub Pages работает с обоими вариантами.
+const demoHref =
+  d.demoType === 'embedded'
+    ? asset(`apps/${app.slug}/demo/index.html${lang === 'ru' ? '?lang=ru' : ''}`)
+    : d.demoType === 'external'
+      ? d.demoUrl
+      : undefined;
+const demoLabel = d.demoType === 'embedded' ? s.apps.try : s.apps.tryExternal;
+
+const all = await getApps(lang);
+const i = all.findIndex((a) => a.slug === app.slug);
+const prev = all[i - 1];
+const next = all[i + 1];
+
+const sections = [
+  { title: s.apps.problem, text: d.problem },
+  { title: s.apps.solution, text: d.solution },
+  { title: s.apps.outcome, text: d.outcome },
+];
+---
+
+<BaseLayout lang={lang} title={d.title} description={d.tagline} image={d.cover?.endsWith('.png') || d.cover?.endsWith('.jpg') ? d.cover : undefined}>
+  <a href={url('apps/', lang)} class="text-sm text-muted-foreground hover:text-foreground">← {s.apps.back}</a>
+
+  <header class="mt-6">
+    <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+      <Badge variant={d.status}>{s.apps.status[d.status]}</Badge>
+      <time datetime={d.date.toISOString()}>{formatDate(d.date, lang)}</time>
+      {d.tags.map((tag) => <Badge>{tag}</Badge>)}
+    </div>
+    <h1 class="mt-3 text-4xl font-bold sm:text-5xl">{d.title}</h1>
+    <p class="mt-3 max-w-2xl text-lg text-muted-foreground">{d.tagline}</p>
+
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+      {
+        demoHref ? (
+          <Button href={demoHref} size="lg" external data-umami-event="try-mvp" data-umami-event-app={app.slug}>
+            {demoLabel} ↗
+          </Button>
+        ) : (
+          <span class="text-sm text-muted-foreground">{s.apps.noDemo}</span>
+        )
+      }
+      {d.links.map((l) => <Button href={l.url} variant="outline" external>{l.label}</Button>)}
+    </div>
+    {
+      d.demoLanguages.length > 0 && (
+        <p class="mt-2 text-xs text-muted-foreground">
+          {s.apps.demoLang}: {d.demoLanguages.join(', ').toUpperCase()}
+        </p>
+      )
+    }
+  </header>
+
+  {
+    d.cover && (
+      <img src={asset(d.cover)} alt="" class="mt-10 aspect-video w-full rounded-xl border object-cover" />
+    )
+  }
+
+  <div class="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem]">
+    <div class="space-y-10">
+      {
+        sections.map((sec) => (
+          <section>
+            <h2 class="text-2xl font-bold">{sec.title}</h2>
+            {paragraphs(sec.text).map((para) => (
+              <p class="mt-3 leading-relaxed">{para}</p>
+            ))}
+          </section>
+        ))
+      }
+      <div class="prose max-w-none dark:prose-invert">
+        <Content />
+      </div>
+    </div>
+    <aside class="h-fit rounded-xl border p-4">
+      <h2 class="text-sm font-semibold text-muted-foreground uppercase">{s.apps.role}</h2>
+      <p class="mt-2">{d.role}</p>
+    </aside>
+  </div>
+
+  <nav class="mt-16 flex flex-wrap justify-between gap-4 border-t pt-6 text-sm">
+    {prev ? <a href={url(`apps/${prev.slug}/`, lang)} class="hover:text-primary">← {prev.data.title}</a> : <span />}
+    {next && <a href={url(`apps/${next.slug}/`, lang)} class="hover:text-primary">{next.data.title} →</a>}
+  </nav>
+</BaseLayout>

@@ -1,0 +1,16 @@
+---
+import { formatDate, url, type Lang } from '@/lib/i18n';
+import type { PostEntry } from '@/lib/content';
+
+interface Props {
+  post: PostEntry;
+  lang: Lang;
+}
+const { post, lang } = Astro.props;
+---
+
+<a href={url(`blog/${post.slug}/`, lang)} class="group block rounded-xl border p-4 transition-colors hover:border-primary/50">
+  <time class="text-xs text-muted-foreground" datetime={post.data.date.toISOString()}>{formatDate(post.data.date, lang)}</time>
+  <h3 class="mt-1 font-semibold group-hover:text-primary">{post.data.title}</h3>
+  <p class="mt-1 text-sm text-muted-foreground">{post.data.description}</p>
+</a>

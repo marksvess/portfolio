@@ -1,0 +1,31 @@
+---
+import { asset } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
+
+interface Props {
+  name: string;
+  photo?: string;
+  class?: string;
+}
+const { name, photo, class: className } = Astro.props;
+const initials = name
+  .split(/\s+/)
+  .map((w) => w[0])
+  .join('')
+  .slice(0, 2)
+  .toUpperCase();
+---
+
+{
+  photo ? (
+    <img src={asset(photo)} alt={name} class={cn('rounded-full object-cover', className)} width="320" height="320" />
+  ) : (
+    <div
+      class={cn('flex items-center justify-center rounded-full bg-accent text-4xl font-semibold text-accent-foreground', className)}
+      role="img"
+      aria-label={name}
+    >
+      {initials}
+    </div>
+  )
+}

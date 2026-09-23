@@ -1,0 +1,67 @@
+---
+import '@/styles/global.css';
+import { Font } from 'astro:assets';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import { asset, LANGS, pathWithoutLang, url, type Lang } from '@/lib/i18n';
+import { getProfile } from '@/lib/content';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  image?: string;
+  /** Для страниц, у которых нет пары на другом языке (например, 404). */
+  noAlternates?: boolean;
+}
+
+const { lang, title, description, image, noAlternates = false } = Astro.props;
+const profile = await getProfile(lang);
+const siteTitle = `${profile.name} — ${profile.title}`;
+const pageTitle = title ? `${title} · ${profile.name}` : siteTitle;
+const pageDescription = description ?? profile.summary;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const current = pathWithoutLang(Astro.url.pathname);
+const ogImage = new URL(asset(image ?? 'og-default.png'), Astro.site);
+
+const umamiId = import.meta.env.PUBLIC_UMAMI_WEBSITE_ID;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={asset('favicon.svg')} />
+    <link rel="sitemap" href={asset('sitemap-index.xml')} />
+    <link rel="alternate" type="application/rss+xml" title={siteTitle} href={url('rss.xml', lang)} />
+    {
+      !noAlternates &&
+        LANGS.map((l) => (
+          <link rel="alternate" hreflang={l} href={new URL(url(current, l), Astro.site)} />
+        ))
+    }
+    {!noAlternates && <link rel="alternate" hreflang="x-default" href={new URL(url(current, 'en'), Astro.site)} />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={lang === 'ru' ? 'ru_RU' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <Font cssVariable="--font-inter" preload />
+    {umamiId && <script is:inline defer src="https://cloud.umami.is/script.js" data-website-id={umamiId} />}
+  </head>
+  <body class="min-h-screen">
+    <Header lang={lang} name={profile.name} noAlternates={noAlternates} />
+    <main class="mx-auto max-w-5xl px-4 pt-10 sm:pt-16">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

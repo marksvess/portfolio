@@ -1,0 +1,14 @@
+---
+// Сгенерированная обёртка маршрута: вся вёрстка в src/views/. Меняется только код языка.
+import View from '@/views/AppView.astro';
+import { getApps, type AppEntry } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const apps = await getApps('en');
+  return apps.map((app) => ({ params: { slug: app.slug }, props: { app } }));
+}
+
+const { app } = Astro.props as { app: AppEntry };
+---
+
+<View app={app} lang="en" />

@@ -8,10 +8,13 @@ Data/*
 .env.*
 !.env.example
 
-# Зависимости и сборка (пригодятся после скаффолдинга Astro)
+# Зависимости и сборка
 node_modules/
 dist/
 .astro/
+
+# Собранные встроенные MVP: генерируются из apps/<slug>/ скриптом scripts/build-demos.mjs
+public/apps/
 
 # Системные файлы
 .DS_Store

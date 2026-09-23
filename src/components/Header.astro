@@ -1,0 +1,46 @@
+---
+import { pathWithoutLang, t, url, type Lang } from '@/lib/i18n';
+
+interface Props {
+  lang: Lang;
+  name: string;
+  /** У страницы нет пары на другом языке: переключатель ведёт на главную. */
+  noAlternates?: boolean;
+}
+const { lang, name, noAlternates = false } = Astro.props;
+const s = t(lang);
+const other: Lang = lang === 'en' ? 'ru' : 'en';
+const current = pathWithoutLang(Astro.url.pathname);
+const switchHref = url(noAlternates ? '' : current, other);
+
+const items = [
+  { href: url('apps/', lang), label: s.nav.apps, key: 'apps' },
+  { href: url('blog/', lang), label: s.nav.blog, key: 'blog' },
+  { href: url('about/', lang), label: s.nav.about, key: 'about' },
+  { href: url('contact/', lang), label: s.nav.contact, key: 'contact' },
+];
+---
+
+<header class="no-print sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
+  <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+    <a href={url('', lang)} class="font-semibold">{name}</a>
+    <nav class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="Main">
+      {
+        items.map((i) => (
+          <a
+            href={i.href}
+            class:list={[
+              'text-muted-foreground hover:text-foreground',
+              current.startsWith(i.key) && 'text-foreground font-medium',
+            ]}
+          >
+            {i.label}
+          </a>
+        ))
+      }
+      <a href={switchHref} hreflang={other} lang={other} class="rounded-md border px-2 py-0.5 text-xs hover:bg-muted">
+        {other.toUpperCase()}
+      </a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,70 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import AppCard from '@/components/AppCard.astro';
+import { t, type Lang } from '@/lib/i18n';
+import { getApps } from '@/lib/content';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const s = t(lang);
+const apps = await getApps(lang);
+const tags = [...new Set(apps.flatMap((a) => a.data.tags))].sort();
+---
+
+<BaseLayout lang={lang} title={s.apps.title} description={s.apps.description}>
+  <h1 class="text-4xl font-bold">{s.apps.title}</h1>
+  <p class="mt-3 max-w-2xl text-muted-foreground">{s.apps.description}</p>
+
+  {
+    tags.length > 1 && (
+      <div class="mt-6 flex flex-wrap gap-2" id="tag-filter">
+        <button type="button" data-tag="" class="tag-btn rounded-full border px-3 py-1 text-sm" aria-pressed="true">
+          {lang === 'ru' ? 'Все' : 'All'}
+        </button>
+        {tags.map((tag) => (
+          <button type="button" data-tag={tag} class="tag-btn rounded-full border px-3 py-1 text-sm" aria-pressed="false">
+            {tag}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    apps.length ? (
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {apps.map((app) => (
+          <div data-tags={app.data.tags.join('|')}>
+            <AppCard app={app} lang={lang} />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="mt-8 text-muted-foreground">{s.apps.empty}</p>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .tag-btn[aria-pressed='true'] {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: transparent;
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.tag-btn');
+  const cards = document.querySelectorAll<HTMLElement>('[data-tags]');
+  buttons.forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag ?? '';
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      cards.forEach((c) => {
+        c.hidden = !!tag && !(c.dataset.tags ?? '').split('|').includes(tag);
+      });
+    }),
+  );
+</script>
