@@ -21,6 +21,9 @@ concurrency:
 
 jobs:
   build:
+    # Когда настроен Timeweb (переменная TIMEWEB_HOST), GitHub Pages остаётся резервной копией:
+    # запускается только вручную, кнопкой Run workflow во вкладке Actions.
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.TIMEWEB_HOST == '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

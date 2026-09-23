@@ -1,0 +1,66 @@
+# Сборка и публикация сайта на хостинг Timeweb по SSH (rsync) при каждом push в main.
+# Включается сам, когда в репозитории заданы переменные и секрет (Settings → Secrets and variables → Actions):
+#   Variables: TIMEWEB_HOST   адрес SSH-сервера из панели Timeweb, например vh123.timeweb.ru
+#              TIMEWEB_USER   логин аккаунта Timeweb
+#              TIMEWEB_PATH   папка сайта, например marksvess.com/public_html (обязательно оканчивается на public_html)
+#   Secret:    TIMEWEB_SSH_KEY  приватный ключ для входа по SSH (публичная часть добавлена в панели Timeweb)
+# Необязательные переменные: PUBLIC_WEB3FORMS_KEY, PUBLIC_UMAMI_WEBSITE_ID.
+name: Deploy to Timeweb
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: timeweb
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.TIMEWEB_HOST != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          SITE_URL: https://marksvess.com
+          BASE_PATH: /
+          PUBLIC_WEB3FORMS_KEY: ${{ vars.PUBLIC_WEB3FORMS_KEY }}
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.PUBLIC_UMAMI_WEBSITE_ID }}
+      - name: Check links
+        run: npm run check:links
+        env:
+          BASE_PATH: /
+
+      - name: Safety check of target folder
+        env:
+          TARGET: ${{ vars.TIMEWEB_PATH }}
+        run: |
+          # rsync --delete удаляет в папке назначения всё лишнее, поэтому папка должна быть именно public_html сайта
+          case "$TARGET" in
+            */public_html|*/public_html/) echo "Target: $TARGET" ;;
+            *) echo "TIMEWEB_PATH должен оканчиваться на public_html, сейчас: '$TARGET'"; exit 1 ;;
+          esac
+
+      - name: Upload via rsync
+        env:
+          SSH_KEY: ${{ secrets.TIMEWEB_SSH_KEY }}
+          HOST: ${{ vars.TIMEWEB_HOST }}
+          USER: ${{ vars.TIMEWEB_USER }}
+          TARGET: ${{ vars.TIMEWEB_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # .well-known защищена от удаления: там файлы проверки SSL-сертификата Let's Encrypt
+          rsync -rlptz --delete --filter='P .well-known/' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            dist/ "$USER@$HOST:${TARGET%/}/"
+          rm -f ~/.ssh/deploy_key

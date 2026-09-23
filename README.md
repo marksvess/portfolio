@@ -3,8 +3,9 @@
 Сайт-портфолио продакт-менеджера: резюме, блог и каталог продуктов, в каждый из которых можно зайти и попробовать MVP.
 Все решения и их причины — в [Reference.md](Reference.md).
 
-- Продакшен: https://marksvess.github.io/portfolio/ (после подключения домена — https://marksvess.com)
-- Стек: Astro 7, MDX, Tailwind CSS 4, токены в стиле shadcn/ui, Keystatic, GitHub Pages.
+- Продакшен: https://marksvess.com на хостинге Timeweb (после подключения, см. Reference.md, раздел 15)
+- Резервная копия: https://marksvess.github.io/portfolio/ на GitHub Pages
+- Стек: Astro 7, MDX, Tailwind CSS 4, токены в стиле shadcn/ui, Keystatic.
 
 ## Запуск на компьютере
 
@@ -63,8 +64,9 @@ Settings → Secrets and variables → Actions → **Variables**:
 |---|---|---|
 | `PUBLIC_WEB3FORMS_KEY` | ключ с web3forms.com | чтобы заработала форма обратной связи |
 | `PUBLIC_UMAMI_WEBSITE_ID` | Website ID из Umami Cloud | чтобы заработала аналитика |
-| `SITE_URL` | `https://marksvess.com` | после подключения домена |
-| `BASE_PATH` | `/` | после подключения домена |
+| `TIMEWEB_HOST`, `TIMEWEB_USER`, `TIMEWEB_PATH` | данные SSH из панели Timeweb | включают публикацию на Timeweb |
+
+Secrets: `TIMEWEB_SSH_KEY` — приватный SSH-ключ для публикации на Timeweb.
 
 ## Структура
 

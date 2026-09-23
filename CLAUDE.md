@@ -10,4 +10,5 @@
 - `Data/` содержит личные данные и не коммитится. Телефон, адрес, дату рождения на сайт не переносить без явного согласия.
 - Перед коммитом: `npm run build` и `npm run check:links`.
 - Не использовать Cloudflare-прокси, Vercel и Netlify: ненадёжный доступ из РФ.
+- Основной хостинг — Timeweb (`deploy-timeweb.yml`, rsync по SSH), GitHub Pages — резерв (`deploy.yml`). Никогда не запрашивать и не читать приватные ключи и пароли: их вводит владелец.
 - PowerShell 5.1 читает файлы в ANSI: для правок UTF-8 файлов использовать Edit/Write, а не `Get-Content`/`Set-Content`.
